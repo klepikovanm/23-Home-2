@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream> 
 #include <string> 
-
 using namespace std;
 
 template <typename T>
@@ -185,7 +184,7 @@ public:
             for (int i=0; i<lines; i++) {
                 for (int j=0; j<second.columns; j++) {
                     M.matrix[i][j] = 0;
-                    for (int k=0; k<lines; k++) {
+                    for (int k=0; k<columns; k++) {
                         M.matrix[i][j] += this->matrix[i][k] * second.matrix[k][j];
                     }
                 }
@@ -342,53 +341,50 @@ public:
         }
         throw "Матрица не квадратная, она не может быть единичной!";
     }
-
-
-    /* 
-    //перегрузка операторов == и != для сравнения матриц
+     
+    //Перегрузка операторов == и != для сравнения матриц
     bool operator ==(const Matrix & second){
-        if (this->lines == second.lines && this->columns == second.columns) { //если размерности матриц совпадают
+        if (this->lines == second.lines && this->columns == second.columns) {
             for (int i=0; i<lines; i++) {
                 for (int j=0; j<columns; j++) {
-                    if (this->matrix[i][j] != second.matrix[i][j]) {//проверяем элементы на равенство
+                    if (this->matrix[i][j] != second.matrix[i][j]) {
                         cout << "Матрицы не равны" << endl;;
-                        return false;//при нахождении первого несовпадения false
+                        return false;
                     }
                 } 
             }
             cout <<  "Матрицы равны" << endl;
-            return true; //все совпало true
+            return true;
         } else {
             cout << "Матрицы не равны" << endl;
-            return false;//при сравнении матриц их размерность не совпала
+            return false;
         }
     }
     bool operator !=(const Matrix & second){
-        return !(*this == second); //разыменовали this, при проверке на неравенство ссылаемся на равенство
+        return !(*this == second);
     }
-    //перегрузка операторов == и != для сравнения матрицы и скаляра 
+    //Перегрузка операторов == и != для сравнения матрицы и скаляра 
     bool operator ==(double scalar) {
         for (int i=0; i<lines; i++) {
             for(int j=0; j<columns; j++) {
-                if (i!=j && matrix[i][j] != 0) {//если элемент вне главной диагонали не ноль false
+                if (i!=j && matrix[i][j] != 0) {
                     cout << "Матрица не равна скаляру" << endl;
                     return false;
                 } 
-                if (i==j && matrix[i][j] != scalar) {//если  элемент на главной диагонали не равен скаляру false
+                if (i==j && matrix[i][j] != scalar) {
                     cout << "Матрица не равна скаляру" << endl;
                     return false;
                 }
             }
         }
         cout << "Матрица равна скаляру" << endl;
-        return true;//равенства выполняются true
+        return true;
     }
-
     bool operator !=(double scalar) {
         return !(*this == scalar);
     }
-    //функция для сложения строк или столбцов
-    //если thing = 0 - строка, если thing = 1 - столбец
+
+    //Функции для сложения и вычитания строк или столбцов (если thing = 0 - строка, если thing = 1 - столбец)
     void plus(int thing, int one, int two, double L) {
         if (thing == 0) {
             for (int i=0; i<columns; i++) {
@@ -400,7 +396,6 @@ public:
             }
         }
     }    
-    //функция для вычитания строк или столбцов
     void minus(int thing, int one, int two, double L) {
         if (thing == 0) {
             for (int i=0; i<columns; i++) {
@@ -412,7 +407,7 @@ public:
             }
         }
     }
-    //функция для преобразования отдельной строки или столбца
+    //Функция для преобразования отдельной строки или столбца
     void multiply(int thing, int one, double L) {
         if (thing == 0) {
             for (int i=0; i<columns; i++) {
@@ -424,7 +419,7 @@ public:
             }
         }
     }
-    //функция для перестановки строки или столбца
+    //Функция для перестановки строки или столбца
     void change(int thing, int one, int two) {
        int temp;
        if (thing == 0) {
@@ -441,14 +436,9 @@ public:
             }
         } 
     }
-    
-    */
-    
-
 };
 
 int main() {
-    /*
     //1-2
     cout << "№1-2" << endl;
     Matrix<int> A_1;
@@ -476,7 +466,7 @@ int main() {
     cout << "№3" << endl;
     try {
         Matrix<double> R_1, R_2;
-        cin >> R_1, R_2;
+        cin >> R_1 >> R_2;
         try {
             cout << R_1 + R_2;;
         } catch (const char* error_message){//через параметр в блоке catch мы можем получить то сообщение, которое передается оператору throw
@@ -495,7 +485,7 @@ int main() {
     cout << "№4" << endl;
     try {
         Matrix<int> P_1, P_2;
-        cin >> P_1, P_2;
+        cin >> P_1 >> P_2;
         cout << P_1 * P_2;
     } catch(const char* error_message) {
         cout << error_message << endl;
@@ -505,7 +495,7 @@ int main() {
     double s;
     cout << "Введите скаляр: ";
     cin >> s;
-    cout << "Матрица, умноженная на скаляр:" << S*s;
+    cout << "Матрица, умноженная на скаляр:" << endl << S*s;
 
     //5
     cout << "№5" << endl;
@@ -544,7 +534,7 @@ int main() {
     cin >> X >> Y;
     cout << "X:" << endl << X;
     X = Y;
-    cout << "Y:" << endl << Y << "X:" << endl << X;*/
+    cout << "Y:" << endl << Y << "X:" << endl << X;
 
     //7
     cout << "№7" << endl;
@@ -561,39 +551,4 @@ int main() {
     } catch(const char* error_message) {
         cout << error_message << endl;
     }
-    
-
-    
-
-    /*
-    
-    Matrix C = A * B;
-    C.getMatrix("C");
-
-    double s;
-    cout << "Введите скаляр: ";
-    cin >> s;
-    Matrix D = A * s;
-    D.getMatrix("D - матрица, умноженная на скаляр: ");
-
-   Matrix E = A + B;
-    E.getMatrix("E");
-    Matrix F = A - B;
-    F.getMatrix("F");
-
-    bool equal = A==B;
-    bool not_equal = A!=B;
-
-    double r;
-    cout << "Введите скаляр: ";
-    cin >> r;
-    bool equal_scalar = A==r;
-    bool not_equal_scalar = A!=r;
-    
-
-    cout << "Определитель матрицы A: " << A.determinant() << endl;
-
-    Matrix G = !A;
-    G.getMatrix("A^(-1) обратная для A: ");*/
-
 }
