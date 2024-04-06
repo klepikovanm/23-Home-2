@@ -5,10 +5,12 @@
 using namespace std;
 
 template <typename T>
-class Matrix{
+class Matrix{  
 private: 
     int lines, columns;
     T** matrix;
+
+    //Удаление матрицы
     void clear(){
         if (matrix != nullptr) {
             for (int i=0; i<lines; i++) {
@@ -16,6 +18,32 @@ private:
             }
         delete[] matrix;
         }
+    }
+
+    //Функция для нахождения дополнений
+    double addition(int stroka, int stolb) {
+        Matrix temp(lines-1,columns-1); 
+        int m_l,m_c;
+        m_l=0;
+        for (int t_l=0; t_l<lines-1; t_l++) {
+            if (t_l==stroka-1) {
+                m_l=1;
+            }
+            m_c=0;
+            for (int t_c=0; t_c<lines-1; t_c++) {
+                if (t_c == stolb-1) {
+                    m_c = 1;
+                }
+                temp.matrix[t_l][t_c] = matrix[t_l+m_l][t_c+m_c];
+            }
+        }
+        int one;
+        if ((stroka+stolb)%2==0) {
+            one = 1;
+        } else {
+            one = -1;
+        }
+        return one*temp.determinant();
     }
 public: 
     //Конструктор по умолчанию(пустая матрица)
@@ -167,7 +195,6 @@ public:
         throw "Кол-во столбцов 1-й матрицы не равно кол-ву строк 2-й матрицы, умножить нельзя!";
     } 
     Matrix operator *(T scalar) {
-        cout << "Матрица, умноженная на скаляр:" << endl;
         Matrix M(lines,columns);
         for (int i=0; i<lines; i++) {
             for (int j=0; j<columns; j++) {
@@ -177,33 +204,147 @@ public:
         return M;
     }
 
-
-
-    /*set-функции инициализируют элементы данных
-    void setMatrix(int n_lines, int n_columns) {
-        for (int i=0; i<lines; i++) {
-            for (int j=0; j<columns; j++) {
-                double number;
-                cout << "Введите число: строка - " << i+1 << "; столбец - " << j+1 << ":";
-                cin >> number;
-                matrix[i][j] = number;
+    //Функция для нахождения детерминанта
+    double determinant() {
+        double det=0;
+        int one;
+        T ** M = this->matrix;
+        if (this->lines != this->columns) {
+           throw "Матрица не квадратная, нет детерминанта!";
+        } else {
+            if (lines == 1) { 
+                return matrix[0][0];
+            } else if (lines == 2) { 
+                return (matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0]);
+            } else {
+                det = 0;
+                for (int i=0; i<lines; i++) {
+                    Matrix temp(lines-1,columns-1);
+                    for (int j=1; j<lines; j++) {
+                        int t = 0;
+                        for (int k=0; k<lines; k++) {
+                            if (k == i) {
+                                continue;
+                            }
+                            temp.matrix[j-1][t] = matrix[j][k];
+                            t++;
+                        }
+                    }
+                    if ((i+1+1)%2==0) {
+                        one = 1;
+                    } else {
+                        one = -1;
+                    }
+                    det += one*matrix[0][i]*temp.determinant();
+                }
             }
         }
+        return det;
     }
-
-    //get-функции позволяют посмотреть значения элементов данных
-    void getMatrix(const char* name) {
-        cout << "Матрица " << name << endl;
+    //Функция для нахождения присоединенной матрицы - A*
+    Matrix join() {
+        T ** M = this->matrix;
+        Matrix temp(lines,columns);
         for (int i=0; i<lines; i++) {
-            for (int j=0; j<columns; j++) {
-                cout << matrix[i][j] << " ";
+            for (int j=0; j<columns; j++){
+                temp.matrix[i][j] = matrix[i][j]; 
             }
-            cout << endl;
         }
+        Matrix m(lines,columns);
+        if (lines != columns) {
+            throw "Матрица не квадратная, нет присоединенной!";
+        } else {
+            for (int i=0; i<lines; i++) {
+                for (int j=0; j<columns; j++){
+                    m.matrix[i][j] = temp.addition(i+1,j+1);
+                }
+            }
+        } 
+        return m;
+    }
+    //Функция для транспонирования матрицы
+    void transposed() {
+        T** M = new T*[columns];
+        for (int i=0; i<columns; i++) {
+            M[i] = new T[lines];
+            for(int j=0; j<lines; j++) {
+                M[i][j] = matrix[j][i];
+            }
+        }
+        clear();
+        int l = lines;
+        lines = columns;
+        columns = l;
+        matrix = M;
+    }
+    //Перегрузка оператра ! для вычисления обраной матрицы
+    Matrix operator !() {
+        Matrix temp(lines,columns);
+        for (int i=0; i<lines; i++) {
+            for (int j=0; j<lines; j++) {
+                temp.matrix[i][j] = matrix[i][j];
+            }
+        }
+        if (lines != columns) {
+            throw "Матрица не квадратная, обратной нет!";
+        } else {
+            double det = temp.determinant();
+            if (det == 0) {
+                throw "Нулевой детерминант, обратной матрицы нет!";
+            } else {
+                Matrix temp_2 = temp.join();
+                temp_2.transposed();
+                Matrix temp_3 = temp_2 * (1/det);
+                cout << "Обратная матрица:" << endl;
+                return temp_3;
+            }
+        } 
     }
 
-    
-    
+    //Перегрузка оператора присваивания =
+    Matrix& operator =(const Matrix & second) {
+        clear();
+        lines = second.lines;
+        columns=second.columns;
+        matrix = new T * [lines];
+        for (int i=0; i<lines; i++) {
+            matrix[i] = new T [columns];
+            for (int j=0; j<columns; j++) {
+                matrix[i][j] = second.matrix[i][j];
+            }
+        }
+        return *this;
+    }
+
+    //Cтатические методы создания нулевых и единичных матриц указанного размера
+    static Matrix<T> zero(int k_lines, int k_columns) {
+        Matrix<T> M(k_lines, k_columns);
+        for (int i = 0; i < k_lines; i++) {
+            for (int j = 0; j < k_columns; j++) {
+                M.matrix[i][j] = 0;
+            }
+        }
+        return M;
+    }
+    static Matrix<T> id(int k_lines, int k_columns) {
+        if (k_lines == k_columns) {
+            Matrix<T> M(k_lines, k_columns);
+            for (int i = 0; i < k_lines; i++) {
+                for (int j = 0; j < k_columns; j++) {
+                    if (i!=j) {
+                        M.matrix[i][j] = 0;
+                    } else {
+                        M.matrix[i][j] = 1;
+                    } 
+                }
+            }
+            return M;
+        }
+        throw "Матрица не квадратная, она не может быть единичной!";
+    }
+
+
+    /* 
     //перегрузка операторов == и != для сравнения матриц
     bool operator ==(const Matrix & second){
         if (this->lines == second.lines && this->columns == second.columns) { //если размерности матриц совпадают
@@ -301,156 +442,15 @@ public:
         } 
     }
     
-    //функция для нахождения детерминанта
-    double determinant() {
-        double det=0;
-        int one;
-        double ** M = this->matrix;
-        if (this->lines != this->columns) {//матрица не квадратная, определителя нет
-            cout <<  "Невозможно найти определитель!" << endl;
-            return 0;
-        } else {
-            if (lines == 1) { //если порядок матрицы 1 - выводим определитель
-                return matrix[0][0];
-            } else if (lines == 2) { //порядок матрицы 2 - выводим определитель по формуле
-                return (matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0]);
-            } else {//если порядок больше - будем искать через матрицы все меньшего порядка
-                det = 0;
-                for (int i=0; i<lines; i++) {
-                    Matrix temp(lines-1,columns-1);
-                    for (int j=1; j<lines; j++) {
-                        int t = 0;
-                        for (int k=0; k<lines; k++) {
-                            if (k == i) { //если столбец равен тому, который должен быть вычеркнут, пропускаем его
-                                continue;
-                            }
-                            temp.matrix[j-1][t] = matrix[j][k];
-                            t++;
-                        }
-                    }
-                    //знак каждого слагаемого для определителя
-                    //i+1 - столбец, +1 - первая строка
-                    if ((i+1+1)%2==0) {
-                        one = 1;
-                    } else {
-                        one = -1;
-                    }
-                    //формула - det += pow(-1,i+1+1)*matrix[0][i]*temp.determinant()
-                    //matrix[0][i] - элемент из первой строки
-                    det += one*matrix[0][i]*temp.determinant();
-                }
-            }
-        }
-        return det;
-    }
-    //функция для нахождения дополнений
-    double addition(int stroka, int stolb) {
-        Matrix temp(lines-1,columns-1); //матрица на порядок меньше исходной
-        int m_l,m_c; //строки и столбцы исходной матрицы
-        m_l=0;
-        for (int t_l=0; t_l<lines-1; t_l++) {
-            if (t_l==stroka-1) {
-                m_l=1;
-            }
-            m_c=0;
-            for (int t_c=0; t_c<lines-1; t_c++) {
-                if (t_c == stolb-1) {
-                    m_c = 1;
-                }
-                temp.matrix[t_l][t_c] = matrix[t_l+m_l][t_c+m_c];//заполняем элементами, кроме вычеркнутых строки и столбца
-            }
-        }
-        //знак каждого дополнения
-        int one;
-        if ((stroka+stolb)%2==0) {
-            one = 1;
-        } else {
-            one = -1;
-        }
-        return one*temp.determinant();
-    }
+    */
+    
 
-    //функция для нахождения присоединенной матрицы - A*
-    Matrix join() {
-        double ** M = this->matrix;
-        Matrix temp(lines,columns);//передаем во временную матрицу исходную
-        for (int i=0; i<lines; i++) {
-                for (int j=0; j<columns; j++){
-                    temp.matrix[i][j] = matrix[i][j]; 
-                }
-        }
-        Matrix T(lines,columns);//создаем конечную матрицу
-        if (lines != columns) {
-            cout << "Присоединенной матрицы нет! Обратите внимание, что исходная не квадратная: ";
-            return temp;
-        } else {
-            for (int i=0; i<lines; i++) {
-                for (int j=0; j<columns; j++){
-                    T.matrix[i][j] = temp.addition(i+1,j+1); //заполняем элементы конечной матрицы дополнениями, найденными из исходной
-                }
-            }
-        } 
-        return T;
-    }
-    //функция для транспонирования матрицы
-    void transposed() {
-        Matrix temp(lines,columns);
-        for (int i=0; i<lines; i++) {
-            for (int j=0; j<lines; j++) {
-                temp.matrix[i][j] = matrix[i][j];
-            }
-        }
-        for (int i=0; i<lines; i++) {
-            for (int j=0; j<lines; j++) {
-                matrix[i][j] = temp.matrix[j][i];
-            }
-        }
-    }
-    //перегрузка оператра ! для вычисления обраной матрицы
-    Matrix operator !() {
-        Matrix temp(lines,columns);//передаем во временную матрицу исходную
-        for (int i=0; i<lines; i++) {
-            for (int j=0; j<lines; j++) {
-                temp.matrix[i][j] = matrix[i][j];
-            }
-        }
-        double det = temp.determinant();
-        if (det == 0) {
-            cout << "Обратной матрицы не существует! ";
-            Matrix zero(lines,columns);
-            for (int i=0; i<lines; i++) {
-                for (int j=0; j<lines; j++) {
-                    zero.matrix[i][j] = 0;
-                }
-            }
-            return zero;
-        } else {
-            Matrix temp_2 = temp.join();//во вторую временную матрицу передаем присоединенную для исходной
-            temp_2.transposed();
-            Matrix temp_3 = temp_2 * (1/det);//третья временная матрица - обратная
-            cout << "Обратная матрица для заданной ";
-            return temp_3;
-        }
-    }
-    Matrix operator =(const Matrix & second) {
-        clear();
-        //4x4 5x5 
-        lines = second.lines;
-        columns=second.columns;
-        matrix = new double * [lines];
-        for (int i=0; i<lines; i++) {
-            matrix[i] = new double [columns];
-            for (int j=0; j<columns; j++) {
-                matrix[i][j] = second.matrix[i][j];
-            }
-        }
-        return *this;
-    }
-*/
 };
 
 int main() {
-    //1-2  
+    /*
+    //1-2
+    cout << "№1-2" << endl;
     Matrix<int> A_1;
     cin >> A_1;
     cout << "Матрица ввода с размером А_1:" << endl << A_1;
@@ -473,11 +473,10 @@ int main() {
     write.close();
 
     //3
+    cout << "№3" << endl;
     try {
-        Matrix<double> R_1;
-        cin >> R_1;
-        Matrix<double> R_2;
-        cin >> R_2;
+        Matrix<double> R_1, R_2;
+        cin >> R_1, R_2;
         try {
             cout << R_1 + R_2;;
         } catch (const char* error_message){//через параметр в блоке catch мы можем получить то сообщение, которое передается оператору throw
@@ -493,11 +492,10 @@ int main() {
     }
 
     //4
+    cout << "№4" << endl;
     try {
-        Matrix<int> P_1;
-        cin >> P_1;
-        Matrix<int> P_2;
-        cin >> P_2; 
+        Matrix<int> P_1, P_2;
+        cin >> P_1, P_2;
         cout << P_1 * P_2;
     } catch(const char* error_message) {
         cout << error_message << endl;
@@ -507,8 +505,65 @@ int main() {
     double s;
     cout << "Введите скаляр: ";
     cin >> s;
-    cout << S*s;
+    cout << "Матрица, умноженная на скаляр:" << S*s;
 
+    //5
+    cout << "№5" << endl;
+    try {
+        Matrix<double> D;
+        cin >> D;
+        try {
+            cout << "Детерминант: " << D.determinant() << endl;
+        } catch(const char* error_message) {
+            cout << error_message << endl;
+        }
+        try {
+            cout << "Присоединенная матрица:" << endl << D.join();
+        } catch(const char* error_message) {
+            cout << error_message << endl;
+        }
+        try {
+            D.transposed();
+            cout << "Транспонированная матрица:" << endl << D;
+        } catch(const char* error_message) {
+            cout << error_message << endl;
+        }
+        try {
+            D.transposed();
+            cout << !D;
+        } catch(const char* error_message) {
+            cout << error_message << endl;
+        }
+    } catch(...) {
+        cout << endl;
+    }
+
+    //6
+    cout << "№6" << endl;
+    Matrix<int> X, Y;
+    cin >> X >> Y;
+    cout << "X:" << endl << X;
+    X = Y;
+    cout << "Y:" << endl << Y << "X:" << endl << X;*/
+
+    //7
+    cout << "№7" << endl;
+    cout << "Нулевая матрица:" << endl << Matrix<int>::zero(3,4);
+    try {
+        Matrix<int> E_1 = Matrix<int>::id(3,4);
+        cout << "Единичная матрица:" << endl << E_1;
+    } catch(const char* error_message) {
+        cout << error_message << endl;
+    }
+    try {
+        Matrix<int> E_2 = Matrix<int>::id(4,4);
+        cout << "Единичная матрица:" << endl << E_2;
+    } catch(const char* error_message) {
+        cout << error_message << endl;
+    }
+    
+
+    
 
     /*
     
